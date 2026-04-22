@@ -1,39 +1,34 @@
 # 💳 Credit Card Fraud Detection System
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![AWS](https://img.shields.io/badge/AWS-Free%20Tier-orange.svg)](https://aws.amazon.com/free/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-2.0.0-green.svg)](https://fastapi.tiangolo.com/)
 
-Real-time machine learning system for detecting fraudulent credit card transactions, deployed on AWS cloud infrastructure.
+Real-time machine learning system for detecting fraudulent credit card transactions, served via a REST API built with FastAPI.
 
 ---
 
 ## 🎯 Project Overview
 
 This project implements an end-to-end fraud detection pipeline that:
-- Detects **90%+ of fraudulent transactions** with **98%+ precision**
-- Processes predictions in **<100ms** for real-time decision making
-- Handles extreme class imbalance (0.17% fraud rate)
+- Detects **87% of fraudulent transactions** with **84% precision**
+- Processes predictions in real-time via REST API
+- Handles extreme class imbalance (0.17% fraud rate, 599:1 ratio)
 - Provides explainable predictions using SHAP values
-- Deploys on AWS using serverless architecture (Lambda + API Gateway)
-
-### Business Impact
-- **$31M+ annual fraud loss reduction** (at 1M transactions/day scale)
-- **80% reduction in manual review costs**
-- **10× fewer false alarms** vs. rule-based systems
+- Trained and evaluated on 283,726 real credit card transactions
 
 ---
 
 ## 📊 Key Results
 
-| Metric | Target | Achieved |
-|--------|--------|----------|
-| **Precision** | >98% | 98.2% |
-| **Recall** | >90% | 91.5% |
-| **F1-Score** | >0.85 | 0.947 |
-| **PR-AUC** | >0.90 | 0.963 |
-| **Latency** | <100ms | 47ms |
-| **Cost/Transaction** | <$0.50 | $0.08 |
+| Metric | Value |
+|--------|-------|
+| **Precision** | 83.8% |
+| **Recall** | 87.3% |
+| **F1-Score** | 0.855 |
+| **ROC-AUC** | 0.985 |
+| **PR-AUC** | 0.873 |
+| **False Alarms** | 12 per 42,559 transactions |
 
 ---
 
@@ -41,22 +36,22 @@ This project implements an end-to-end fraud detection pipeline that:
 
 ### Training Pipeline
 ```
-Raw Data (Kaggle) → S3 Storage → Feature Engineering → 
-Model Training (XGBoost) → Evaluation → Model Registry (S3)
+Raw Data (Kaggle CSV) → EDA → Feature Engineering →
+SMOTE Balancing → Model Training → Hyperparameter Tuning (Optuna) →
+Evaluation → Saved Model (.pkl)
 ```
 
 ### Inference Pipeline
 ```
-Transaction → API Gateway → Lambda Function → 
-Model Prediction → SHAP Explanation → Response (JSON)
+Transaction (JSON) → FastAPI → Feature Engineering →
+XGBoost Prediction → Risk Level → Response (JSON)
 ```
 
 ### Tech Stack
-- **ML**: scikit-learn, XGBoost, LightGBM, SHAP
-- **Cloud**: AWS (S3, Lambda, API Gateway, CloudWatch)
-- **API**: FastAPI / Flask
-- **Monitoring**: CloudWatch, custom dashboards
-- **Deployment**: Docker (optional), AWS Lambda
+- **ML**: scikit-learn, XGBoost, LightGBM, SHAP, imbalanced-learn
+- **API**: FastAPI, Uvicorn
+- **Tuning**: Optuna
+- **Visualization**: Matplotlib, Seaborn
 
 ---
 
@@ -65,73 +60,41 @@ Model Prediction → SHAP Explanation → Response (JSON)
 ```
 fraud-detection-aws/
 │
-├── README.md                          # This file
-├── requirements.txt                   # Python dependencies
-├── .gitignore                        # Git ignore rules
+├── README.md
+├── requirements.txt
+├── .gitignore
 │
-├── docs/                             # Documentation
-│   ├── problem_statement.md          # Business problem definition
-│   ├── success_metrics.md            # Evaluation metrics explained
-│   ├── cost_benefit_analysis.md      # ROI analysis
-│   ├── architecture.md               # System architecture
-│   └── api_documentation.md          # API usage guide
+├── docs/                         # Visualizations & documentation
+│   ├── class_distribution.png
+│   ├── amount_analysis.png
+│   ├── time_analysis.png
+│   ├── correlation_analysis.png
+│   ├── smote_comparison.png
+│   ├── model_comparison.png
+│   ├── shap_feature_importance.png
+│   ├── shap_summary_dot.png
+│   ├── confusion_matrix.png
+│   └── threshold_tuning.png
 │
-├── data/                             # Data directory (not in Git)
-│   ├── raw/                          # Original data from Kaggle
-│   ├── processed/                    # Cleaned & feature-engineered
-│   └── README.md                     # Data dictionary
+├── data/
+│   ├── raw/                      # Original Kaggle CSV
+│   └── processed/                # Cleaned & split datasets
 │
-├── notebooks/                        # Jupyter notebooks
-│   ├── exploratory/
-│   │   └── 01_eda.ipynb             # Exploratory Data Analysis
-│   └── modeling/
-│       ├── 02_preprocessing.ipynb    # Data preprocessing
-│       ├── 03_feature_engineering.ipynb
-│       ├── 04_model_training.ipynb
-│       └── 05_evaluation.ipynb      # Model evaluation
+├── notebooks/
+│   └── exploratory/
+│       ├── 01_eda.ipynb
+│       ├── 02_preprocessing.ipynb
+│       ├── 03_modeling.ipynb
+│       └── 04_evaluation.ipynb
 │
-├── src/                              # Source code (production)
-│   ├── __init__.py
-│   ├── data/
-│   │   ├── __init__.py
-│   │   ├── data_loader.py           # Load data from S3/local
-│   │   └── data_preprocessor.py     # Cleaning & preprocessing
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── feature_engineer.py      # Feature engineering
-│   │   ├── model_trainer.py         # Train models
-│   │   └── model_predictor.py       # Inference
-│   ├── evaluation/
-│   │   ├── __init__.py
-│   │   ├── metrics.py               # Custom metrics
-│   │   └── explainer.py             # SHAP explanations
-│   └── api/
-│       ├── __init__.py
-│       └── app.py                   # FastAPI application
+├── models/
+│   └── saved_models/
+│       ├── final_model_xgb.pkl   # Primary model
+│       ├── scaler.pkl            # RobustScaler
+│       └── model_config.json     # Threshold config
 │
-├── models/                           # Trained models (not in Git)
-│   ├── saved_models/                 # .pkl, .joblib files
-│   └── checkpoints/                  # Training checkpoints
-│
-├── deployment/                       # Deployment configurations
-│   ├── lambda/
-│   │   ├── lambda_function.py       # AWS Lambda handler
-│   │   └── requirements.txt         # Lambda dependencies
-│   ├── ec2/
-│   │   └── setup.sh                 # EC2 setup script
-│   └── streamlit/
-│       └── streamlit_app.py         # Streamlit dashboard
-│
-├── tests/                            # Unit tests
-│   ├── __init__.py
-│   ├── test_preprocessing.py
-│   ├── test_features.py
-│   └── test_model.py
-│
-└── aws/                              # AWS infrastructure
-    └── scripts/
-        ├── setup_s3.py              # S3 bucket creation
-        └── deploy_lambda.py         # Lambda deployment
+└── deployment/
+    └── app.py                    # FastAPI application
 ```
 
 ---
@@ -139,30 +102,25 @@ fraud-detection-aws/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.9 or higher
-- AWS account (Free Tier)
+- Python 3.11
 - Git
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/fraud-detection-aws.git
+git clone https://github.com/Shahbaz-Ahmed999/fraud-detection-aws.git
 cd fraud-detection-aws
 ```
 
 ### 2. Create Virtual Environment
 ```bash
-# Windows
 python -m venv venv
-venv\Scripts\activate
-
-# Mac/Linux
-python3 -m venv venv
-source venv/bin/activate
+venv\Scripts\activate        # Windows
+source venv/bin/activate     # Mac/Linux
 ```
 
 ### 3. Install Dependencies
 ```bash
-pip install -r requirements.txt
+pip install numpy==1.26.4 pandas==2.2.2 matplotlib seaborn scikit-learn xgboost lightgbm imbalanced-learn shap fastapi uvicorn pydantic optuna jupyter
 ```
 
 ### 4. Download Dataset
@@ -170,290 +128,173 @@ pip install -r requirements.txt
 2. Download `creditcard.csv`
 3. Place in `data/raw/` folder
 
-### 5. Configure AWS (Optional for local testing)
+### 5. Run Notebooks in Order
 ```bash
-aws configure
-# Enter your AWS Access Key ID
-# Enter your AWS Secret Access Key
-# Default region: us-east-1
-# Default output format: json
+jupyter notebook
 ```
+- `01_eda.ipynb` — Exploratory Data Analysis
+- `02_preprocessing.ipynb` — Feature Engineering & SMOTE
+- `03_modeling.ipynb` — Model Training & Tuning
+- `04_evaluation.ipynb` — SHAP Explainability
+
+### 6. Start API Server
+```bash
+cd deployment
+python app.py
+```
+API runs at: `http://localhost:8000`
+Docs at: `http://localhost:8000/docs`
 
 ---
 
-## 💻 Usage
+## 💻 API Usage
 
-### Training the Model Locally
-
-```bash
-# Run exploratory data analysis
-jupyter notebook notebooks/exploratory/01_eda.ipynb
-
-# Train model
-python src/models/model_trainer.py --config config/train_config.yaml
-
-# Evaluate model
-python src/evaluation/metrics.py --model models/saved_models/xgboost_v1.pkl
-```
-
-### Making Predictions
-
-```python
-from src.models.model_predictor import FraudPredictor
-
-# Load model
-predictor = FraudPredictor(model_path='models/saved_models/xgboost_v1.pkl')
-
-# Predict single transaction
-transaction = {
-    'Time': 12345,
-    'Amount': 149.99,
-    'V1': -1.359807,
-    'V2': -0.072781,
-    # ... other features
-}
-
-result = predictor.predict(transaction)
-print(f"Fraud Probability: {result['fraud_probability']:.2%}")
-print(f"Top Reasons: {result['top_reasons']}")
-```
-
-### Starting API Server (Local)
+### Predict Single Transaction
 
 ```bash
-# FastAPI
-cd src/api
-uvicorn app:app --reload --host 0.0.0.0 --port 8000
-
-# Test endpoint
 curl -X POST "http://localhost:8000/predict" \
   -H "Content-Type: application/json" \
-  -d @sample_transaction.json
+  -d '{
+    "Time": 406.0,
+    "Amount": 149.62,
+    "V1": -2.3122,
+    "V2": 1.9519,
+    ...
+  }'
 ```
 
-### Deploying to AWS Lambda
-
-```bash
-# Package Lambda function
-cd deployment/lambda
-pip install -r requirements.txt -t .
-zip -r lambda_function.zip .
-
-# Deploy (requires AWS CLI configured)
-aws lambda create-function \
-  --function-name FraudDetection \
-  --runtime python3.9 \
-  --role arn:aws:iam::YOUR_ACCOUNT:role/lambda-role \
-  --handler lambda_function.handler \
-  --zip-file fileb://lambda_function.zip
-```
-
----
-
-## 📈 Model Performance
-
-### Confusion Matrix (Test Set)
-```
-                Predicted
-            Legitimate  Fraud
-Actual Legit   42,627     85
-       Fraud       43    465
-```
-
-### Key Metrics
-- **True Positives**: 465 (fraud correctly identified)
-- **False Positives**: 85 (legitimate flagged as fraud)
-- **False Negatives**: 43 (fraud missed)
-- **True Negatives**: 42,627 (legitimate correctly identified)
-
-### Feature Importance (Top 5)
-1. V14 (normalized feature)
-2. V10 (normalized feature)
-3. V17 (normalized feature)
-4. Amount (transaction amount)
-5. V12 (normalized feature)
-
----
-
-## 🔍 Model Explainability
-
-Every prediction includes SHAP explanations:
-
+### Response
 ```json
 {
-  "transaction_id": "txn_12345",
-  "prediction": "fraud",
-  "fraud_probability": 0.94,
-  "shap_values": {
-    "V14": 0.42,
-    "Amount": 0.31,
-    "V10": 0.18
-  },
-  "top_reasons": [
-    "Unusual V14 pattern (SHAP: +0.42)",
-    "High transaction amount (SHAP: +0.31)",
-    "Abnormal V10 value (SHAP: +0.18)"
-  ]
+  "is_fraud": true,
+  "fraud_probability": 0.9993,
+  "risk_level": "HIGH",
+  "recommendation": "BLOCK",
+  "model_version": "2.0.0"
 }
 ```
 
----
-
-## 🧪 Testing
-
-Run all tests:
-```bash
-pytest tests/ -v
-```
-
-Run specific test:
-```bash
-pytest tests/test_model.py::test_prediction_format -v
-```
+### Risk Levels
+| Level | Probability | Action |
+|-------|-------------|--------|
+| VERY LOW | < 30% | APPROVE |
+| LOW | 30-50% | APPROVE |
+| MEDIUM | 50-80% | REVIEW |
+| HIGH | > 80% | BLOCK |
 
 ---
 
-## 📊 Monitoring
+## 📈 Model Development Journey
 
-### Metrics Tracked
-- **Model Performance**: Precision, Recall, F1 (daily)
-- **Data Drift**: Feature distribution changes (weekly)
-- **Latency**: p50, p95, p99 (real-time)
-- **Error Rate**: API errors, timeouts (real-time)
-
-### CloudWatch Dashboard
-- Custom dashboard at: [CloudWatch Console](https://console.aws.amazon.com/cloudwatch/)
-- Metrics namespace: `FraudDetection/Production`
+| Model | Precision | Recall | F1 | False Positives |
+|-------|-----------|--------|----|-----------------|
+| Logistic Regression (baseline) | 0.063 | 0.915 | 0.118 | 964 |
+| Random Forest | 0.566 | 0.845 | 0.678 | 46 |
+| XGBoost (default) | 0.518 | 0.831 | 0.638 | 55 |
+| Random Forest (Tuned) | 0.714 | 0.845 | 0.774 | 24 |
+| **XGBoost (Tuned) ✅** | **0.838** | **0.873** | **0.855** | **12** |
 
 ---
 
-## 🛠️ Development
-
-### Adding New Features
-1. Create feature in `src/models/feature_engineer.py`
-2. Add unit test in `tests/test_features.py`
-3. Update documentation
-4. Retrain model and evaluate impact
-
-### Retraining Model
-```bash
-# Monthly retraining
-python src/models/model_trainer.py \
-  --data data/processed/transactions_2026_04.csv \
-  --output models/saved_models/xgboost_v2.pkl
-
-# Compare with previous version
-python src/evaluation/model_comparison.py \
-  --model_a models/saved_models/xgboost_v1.pkl \
-  --model_b models/saved_models/xgboost_v2.pkl
-```
-
----
-
-## 💡 Key Learnings & Decisions
+## 🔑 Key Technical Decisions
 
 ### Why XGBoost?
-- Handles imbalanced data better than random forest
-- Faster training than neural networks
-- Interpretable with SHAP
-- Production-proven for tabular data
+- Outperforms Random Forest on PR-AUC (0.873 vs 0.819)
+- Better handling of imbalanced tabular data
+- Faster inference for real-time API
+- Tunable with Optuna for optimal performance
 
-### Why Precision-Recall over ROC-AUC?
-- With 99.83% legitimate transactions, ROC-AUC is misleading
-- PR-AUC focuses on minority class (fraud)
-- More honest assessment of real-world performance
+### Why Precision-Recall over Accuracy?
+- Dataset is 99.83% legitimate transactions
+- Accuracy is misleading — a model predicting all legitimate gets 99.83% accuracy
+- PR-AUC focuses on minority class (fraud) performance
+- F1-Score balances precision and recall fairly
 
-### Why AWS Lambda?
-- Pay per request (cost-efficient for variable traffic)
-- Auto-scaling (handles traffic spikes)
-- No server management
-- Fits within Free Tier limits
+### Why SMOTE?
+- Original ratio: 599:1 (legitimate:fraud)
+- SMOTE balanced training data to 1:1
+- Applied ONLY to training data to prevent data leakage
+- Improved F1 from ~0.12 (baseline) to 0.855
+
+### Why RobustScaler?
+- Dataset has extreme outliers (Amount up to $25,691)
+- RobustScaler uses median/IQR instead of mean/std
+- More resistant to outliers than StandardScaler
+
+---
+
+## 🔍 Model Explainability (SHAP)
+
+Top fraud indicators identified by SHAP analysis:
+
+| Rank | Feature | Direction |
+|------|---------|-----------|
+| 1 | V14 | Low values = fraud |
+| 2 | V12 | Low values = fraud |
+| 3 | V4 | High values = fraud |
+| 4 | V10 | Low values = fraud |
+| 5 | V17 | Low values = fraud |
+
+Note: V1-V28 are PCA-transformed features (anonymized for privacy).
+
+---
+
+## 📊 Business Impact
+
+Per 42,559 transactions:
+- **Fraud caught**: 62 out of 71 cases (87.3%)
+- **Fraud missed**: 9 cases
+- **False alarms**: 12 (0.028% of legitimate transactions)
+- **Legitimate cleared**: 42,483
 
 ---
 
 ## 🎓 Interview Talking Points
 
 **"Tell me about this project"**
-> "I built an end-to-end fraud detection system that catches 91% of fraudulent transactions with 98% precision, processing predictions in under 50ms. The challenge was handling extreme class imbalance—only 0.17% of transactions are fraud—so I used SMOTE for oversampling, cost-sensitive learning with a 10:1 penalty ratio, and tuned the decision threshold based on business costs rather than the default 0.5. I deployed it on AWS using Lambda for serverless inference and S3 for model storage, keeping everything within the Free Tier. The system provides SHAP-based explanations for every prediction, which is critical for regulatory compliance."
+> "I built an end-to-end fraud detection system on the Kaggle credit card dataset — 284,807 transactions with only 0.17% fraud. The biggest challenge was class imbalance at 599:1, which I solved using SMOTE for oversampling and switching evaluation metrics from accuracy to Precision-Recall. I trained and compared 4 models — Logistic Regression, Random Forest, XGBoost, and LightGBM — then used Optuna for Bayesian hyperparameter tuning on XGBoost. The final model achieves 83.8% precision, 87.3% recall, and 0.855 F1-score, deployed as a real-time REST API using FastAPI."
 
-**"What was the biggest challenge?"**
-> "Class imbalance. With 99.83% legitimate transactions, a naive model could achieve 99.83% accuracy by always predicting 'legitimate' while catching zero fraud. I solved this using three approaches: resampling with SMOTE to balance training data, class weights to penalize fraud misclassification more heavily, and switching from accuracy to Precision-Recall metrics. The real insight was understanding that false negatives (missed fraud) cost $125 while false positives (blocked legitimate) cost $20, so I tuned the threshold to minimize total business cost."
+**"How did you handle class imbalance?"**
+> "Three approaches: First, SMOTE oversampling on training data only to avoid data leakage — this balanced the 599:1 ratio to 1:1. Second, cost-sensitive learning using class_weight='balanced' in baseline models. Third, switching from accuracy to PR-AUC as the primary evaluation metric, since accuracy is misleading when 99.83% of data is one class."
 
-**"How would you improve this?"**
-> "Three areas: First, feature engineering—the current dataset has anonymized features, but in production I'd add velocity features like 'transactions in last hour' and user behavior patterns. Second, model updating—fraudsters adapt, so I'd implement automated monthly retraining with drift detection. Third, ensemble methods—combining XGBoost with a neural network could improve performance on edge cases, though at the cost of increased latency."
+**"Why XGBoost over Random Forest?"**
+> "Both performed well, but XGBoost with Optuna tuning achieved better PR-AUC (0.873 vs 0.819) which is the most important metric for imbalanced datasets. XGBoost also had fewer false positives — only 12 vs 24 for Random Forest — meaning fewer legitimate customers incorrectly flagged."
 
 ---
 
 ## 📚 Resources
 
-### Documentation
-- [Problem Statement](docs/problem_statement.md)
-- [Success Metrics](docs/success_metrics.md)
-- [Cost-Benefit Analysis](docs/cost_benefit_analysis.md)
-- [API Documentation](docs/api_documentation.md)
-
-### Dataset
-- [Kaggle Credit Card Fraud Detection](https://www.kaggle.com/mlg-ulb/creditcardfraud)
-
-### Related Reading
-- [Handling Imbalanced Datasets](https://imbalanced-learn.org/stable/)
-- [SHAP for Model Explainability](https://shap.readthedocs.io/)
-- [AWS Lambda Best Practices](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)
-
----
-
-## 🤝 Contributing
-
-This is a portfolio project, but feedback is welcome!
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/improvement`)
-3. Commit changes (`git commit -am 'Add new feature'`)
-4. Push to branch (`git push origin feature/improvement`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see [LICENSE](LICENSE) file for details.
+- [Dataset: Kaggle Credit Card Fraud Detection](https://www.kaggle.com/mlg-ulb/creditcardfraud)
+- [SHAP Documentation](https://shap.readthedocs.io/)
+- [Optuna Hyperparameter Tuning](https://optuna.org/)
+- [Imbalanced-learn SMOTE](https://imbalanced-learn.org/)
 
 ---
 
 ## 👤 Author
 
-**[Your Name]**
-- LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
-- Email: your.email@example.com
-- Portfolio: [Your Portfolio](https://yourportfolio.com)
-
----
-
-## 🙏 Acknowledgments
-
-- Dataset: Machine Learning Group - ULB (Université Libre de Bruxelles)
-- Inspiration: Real-world fraud detection systems at PayPal, Stripe, Square
-- Cloud Infrastructure: AWS Free Tier
+**Shahbaz Ahmed**
+- GitHub: [Shahbaz-Ahmed999](https://github.com/Shahbaz-Ahmed999)
 
 ---
 
 ## 📌 Project Status
 
-**Current Phase**: ✅ Phase 1 Complete (Foundation & Planning)
+**Status**: ✅ Complete
 
-**Roadmap**:
-- [x] Phase 1: Foundation & Planning
-- [ ] Phase 2: Data Acquisition & EDA
-- [ ] Phase 3: Feature Engineering
-- [ ] Phase 4: Model Development
-- [ ] Phase 5: Evaluation & Explainability
-- [ ] Phase 6: AWS Deployment
-- [ ] Phase 7: Monitoring & Documentation
+- [x] Exploratory Data Analysis
+- [x] Feature Engineering & SMOTE
+- [x] Model Training & Comparison
+- [x] Hyperparameter Tuning (Optuna)
+- [x] SHAP Explainability
+- [x] REST API Deployment (FastAPI)
+- [ ] AWS Cloud Deployment (planned)
+- [ ] Model Monitoring Dashboard (planned)
 
 **Last Updated**: April 2026
 
 ---
 
 <div align="center">
-  <strong>Built with 🧠 Machine Learning | ☁️ AWS Cloud | 🐍 Python</strong>
+  <strong>Built with 🧠 XGBoost | ⚡ FastAPI | 🐍 Python 3.11</strong>
 </div>

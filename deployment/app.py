@@ -17,7 +17,7 @@ app = FastAPI(
 
 # Load model and scaler
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL_PATH = os.path.join(BASE_DIR, 'models', 'saved_models', 'final_model.pkl')
+MODEL_PATH = os.path.join(BASE_DIR, 'models', 'saved_models', 'xgboost_tuned.pkl')
 SCALER_PATH = os.path.join(BASE_DIR, 'models', 'saved_models', 'scaler.pkl')
 
 print(f"Loading model from: {MODEL_PATH}")
@@ -107,7 +107,7 @@ def root():
 def health():
     return {
         "status": "healthy",
-        "model": "Random Forest (Tuned)",
+        "model": "XGBoost (Tuned)",
         "features": 37
     }
 
@@ -139,7 +139,7 @@ def predict(transaction: Transaction):
             "fraud_probability": fraud_probability,
             "risk_level": risk_level,
             "recommendation": "BLOCK" if is_fraud else "APPROVE",
-            "model_version": "1.0.0"
+            "model_version": "2.0.0"
         }
 
     except Exception as e:

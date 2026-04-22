@@ -1,0 +1,5 @@
+{
+  "model": "XGBoost Tuned",
+  "threshold": 0.9787783622741699,
+  "version": "2.0.0"
+}
