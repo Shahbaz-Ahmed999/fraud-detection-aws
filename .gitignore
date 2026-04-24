@@ -305,3 +305,8 @@ docs/_templates/
 # Keep configuration templates
 !config/*.template
 !config/*.example
+lambda_layer/ 
+xgboost_layer/ 
+lambda_deployment.zip 
+lambda_layer.zip 
+response.json 
