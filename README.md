@@ -3,10 +3,12 @@
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![AWS Lambda](https://img.shields.io/badge/AWS-Lambda-orange.svg)](https://aws.amazon.com/lambda/)
 [![XGBoost](https://img.shields.io/badge/XGBoost-2.1.1-green.svg)](https://xgboost.readthedocs.io/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://fraud-detection-shahbaz.streamlit.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 An end-to-end machine learning system for real-time credit card fraud detection. Trained on 283,726 transactions, deployed serverlessly on AWS Lambda with a public REST API via API Gateway.
 
+**🎮 Live Demo:** https://fraud-detection-shahbaz.streamlit.app/
 ---
 
 ## ☁️ Live AWS Deployment
